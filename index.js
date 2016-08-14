@@ -1,0 +1,1 @@
+module.exports = exports = require("./src/pipeline.js");
