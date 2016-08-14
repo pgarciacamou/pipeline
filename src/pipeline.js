@@ -86,7 +86,7 @@ pipe.buffer = function(upperBoundLimit=100) {
   return _ => {
     buffer.push(_);
     if(buffer.length > upperBoundLimit) buffer.splice(0,buffer.length - upperBoundLimit);
-    return buffer;
+    return buffer.slice(0);
   };
 };
 
