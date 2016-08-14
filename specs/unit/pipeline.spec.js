@@ -3,8 +3,8 @@ const {
   stop,
   skip,
   pipeline,
-  preciseBuffer,
-  continuousBuffer,
+  every,
+  buffer,
   latest,
   log
 } = pipe;
@@ -69,28 +69,6 @@ describe('pipeline', function() {
     .run();
   });
 
-  describe('pipeline helpers', function() {
-    it('should be an exact number of elements in a preciseBuffer', function(done) {
-      let count = 5;
-      let times = 3;
-      pipeline(run => {
-        let counter = 1;
-        later(function loop(){
-          run(counter++)
-          if(counter <= count * times) {
-            later(loop);
-          } else {
-            done();
-          }
-        })
-      })
-      .pipe(preciseBuffer(count))
-      .pipe(res => {
-        expect(res.length).toEqual(count);
-      })
-    });
-  });
-
   describe('pipeline commands', function() {
     let tempSpy;
     let tempSpy2;
@@ -113,6 +91,28 @@ describe('pipeline', function() {
     });
     it('allows to skip', function() {
       expect(tempSpy2).not.toHaveBeenCalledWith(undefined);
+    });
+  });
+
+  describe('pipeline helpers', function() {
+    it('should be an exact number of elements in a preciseBuffer', function(done) {
+      let count = 5;
+      let times = 3;
+      pipeline(run => {
+        let counter = 1;
+        later(function loop(){
+          run(counter++)
+          if(counter <= count * times) {
+            later(loop);
+          } else {
+            done();
+          }
+        });
+      })
+      .pipe(every(count))
+      .pipe(res => {
+        expect(res.length).toEqual(count);
+      })
     });
   });
 });
