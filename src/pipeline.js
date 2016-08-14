@@ -1,9 +1,11 @@
-// HELPERS
-function uniqueID() {
-  return Object.freeze({});
-}
+const uniqueID = require("./helpers/uniqueID.js");
 
-// PIPE
+/**
+ * pipe function
+ * @param  {Function} callback callback to be executed on run
+ * @param  {Object}   _pipes   private object to store the callbacks
+ * @return {pipe}
+ */
 let pipe = module.exports = function pipe(callback=null, _pipes={cbs:[]}){
   callback && _pipes.cbs.push(callback);
   return {
@@ -23,10 +25,32 @@ let pipe = module.exports = function pipe(callback=null, _pipes={cbs:[]}){
 }
 
 // COMMANDS
+// --------------------
+
+/**
+ * stop command
+ * when returned through a pipe, the pipeline stops
+ * @type {object}
+ */
 pipe.stop = uniqueID();
+
+/**
+ * stop command
+ * when returned through a pipe, the pipeline skips
+ * the result from the current pipe function.
+ * @type {object}
+ */
 pipe.skip = uniqueID();
 
 // EXTRA FUNCTIONALITY
+// --------------------
+
+/**
+ * Wraps the execution of a pipe.
+ * @param  {Function}         callback receives:
+ *      @argument {Function}  run pipe runner
+ * @return {pipe}
+ */
 pipe.pipeline = function(callback) {
   let _pipe = pipe();
   callback(_pipe.run);
@@ -34,15 +58,30 @@ pipe.pipeline = function(callback) {
 };
 
 // HELPERS
-pipe.preciseBuffer = function(exactly=0) {
+// --------------------
+
+/**
+ * Buffers until numOfItems and restarts the buffer.
+ * @param  {Number} numOfItems length of the buffer
+ * @return {Function}
+ */
+pipe.every = function(numOfItems=0) {
   let buffer = [];
   return _ => {
     buffer.push(_);
-    if(buffer.length < exactly) return pipe.stop;
+    if(buffer.length < numOfItems) return pipe.stop;
     return buffer.splice(0);
   };
 };
-pipe.continuousBuffer = function(upperBoundLimit=100) {
+
+/**
+ * Keeps a continuous buffer with an upperLimit of items.
+ * Every time the pipe is 'run', the full buffer will be
+ * passed down the pipe.
+ * @param  {Number} [upperBoundLimit=100] maximum number of items in the buffer at any given time
+ * @return {Function}
+ */
+pipe.buffer = function(upperBoundLimit=100) {
   let buffer = [];
   return _ => {
     buffer.push(_);
@@ -50,11 +89,25 @@ pipe.continuousBuffer = function(upperBoundLimit=100) {
     return buffer;
   };
 };
-pipe.latest = function(n) {
+
+/**
+ * Used in conjuction with 'buffer', this static method
+ * will return the latest numOfItems in the buffer.
+ * @param  {Number} numOfItems number of items to select from the buffer
+ * @return {Function}
+ */
+pipe.latest = function(numOfItems) {
   return _ => {
-    return _.slice(-n);
+    return _.slice(-numOfItems);
   };
 };
+
+/**
+ * This logger is just a helper to print to the console with ease.
+ * @param  {String}   msg     message to log before values
+ * @param  {Function} process callback to process data if needed
+ * @return {Function}
+ */
 pipe.log = function(msg, process = _ => _) {
   return _ => {
     let log = [process(_)];
