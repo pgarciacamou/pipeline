@@ -2,8 +2,8 @@ const uniqueID = require("./helpers/uniqueID.js");
 
 /**
  * pipe function
- * @param  {Function} callback callback to be executed on run
- * @param  {Object}   _pipes   private object to store the callbacks
+ * @param  {Function} [callback=null] callback to be executed on run
+ * @param  {Object}   _pipes          private object to store the callbacks
  * @return {pipe}
  */
 let pipe = module.exports = function pipe(callback=null, _pipes={cbs:[]}){
@@ -62,7 +62,7 @@ pipe.pipeline = function(callback) {
 
 /**
  * Buffers until numOfItems and restarts the buffer.
- * @param  {Number} numOfItems length of the buffer
+ * @param  {Number} [numOfItems=0] length of the buffer
  * @return {Function}
  */
 pipe.every = function(numOfItems=0) {
@@ -104,8 +104,8 @@ pipe.latest = function(numOfItems) {
 
 /**
  * This logger is just a helper to print to the console with ease.
- * @param  {String}   msg     message to log before values
- * @param  {Function} process callback to process data if needed
+ * @param  {String}   [msg]     message to log before values
+ * @param  {Function} [process] callback to process data if needed
  * @return {Function}
  */
 pipe.log = function(msg, process = _ => _) {
