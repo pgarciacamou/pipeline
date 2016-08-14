@@ -4,14 +4,14 @@ function uniqueID() {
 }
 
 // PIPE
-function pipe(callback=null, _pipes={cbs:[]}){
+let pipe = module.exports = function pipe(callback=null, _pipes={cbs:[]}){
   callback && _pipes.cbs.push(callback);
   return {
     pipe: cb => pipe(cb, _pipes),
     run: res => {
-      var cb, i=0;
+      let cb, i=0;
       while(cb = _pipes.cbs[i++]){
-        temp = cb(res);
+        let temp = cb(res);
         if(temp && temp.pipe) temp.pipe(_ => temp = _).run();
         if(temp === pipe.skip) continue;
         res = temp;
@@ -27,21 +27,23 @@ pipe.stop = uniqueID();
 pipe.skip = uniqueID();
 
 // EXTRA FUNCTIONALITY
-pipe.pipeline = function (callback){
-  var _pipe = pipe();
+pipe.pipeline = function(callback) {
+  let _pipe = pipe();
   callback(_pipe.run);
   return _pipe;
 };
-pipe.preciseBuffer = function(exactly=0){
-  var buffer = [];
+
+// HELPERS
+pipe.preciseBuffer = function(exactly=0) {
+  let buffer = [];
   return _ => {
     buffer.push(_);
     if(buffer.length < exactly) return pipe.stop;
     return buffer.splice(0);
   };
 };
-pipe.continuousBuffer = function(upperBoundLimit=100){
-  var buffer = [];
+pipe.continuousBuffer = function(upperBoundLimit=100) {
+  let buffer = [];
   return _ => {
     buffer.push(_);
     if(buffer.length > upperBoundLimit) buffer.splice(0,buffer.length - upperBoundLimit);
@@ -55,7 +57,7 @@ pipe.latest = function(n) {
 };
 pipe.log = function(msg, process = _ => _) {
   return _ => {
-    let log = [process(_)]
+    let log = [process(_)];
     msg && log.unshift(msg);
     return console.log.apply(console, log);
   };
