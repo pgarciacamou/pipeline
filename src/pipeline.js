@@ -22,7 +22,7 @@ let pipe = module.exports = function pipe(callback=null, _pipes={cbs:[]}){
       return res;
     }
   };
-}
+};
 
 // COMMANDS
 // --------------------
