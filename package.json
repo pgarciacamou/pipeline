@@ -4,7 +4,7 @@
   "description": "small api that allows to execute functions/callbacks sequentially",
   "main": "src/pipeline.js",
   "scripts": {
-    "dist": "./node_modules/browserify/bin/cmd.js ./src/index.js -o ./dist/bundle.js -t [ babelify --presets [ es2015 ] ]",
+    "dist": "./node_modules/browserify/bin/cmd.js ./src/pipeline.js -o ./dist/bundle.js -t [ babelify --presets [ es2015 ] ]",
     "test": "./node_modules/karma/bin/karma start"
   },
   "repository": {
