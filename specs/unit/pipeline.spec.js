@@ -95,13 +95,13 @@ describe('pipeline', function() {
   });
 
   describe('pipeline helpers', function() {
-    it('should be an exact number of elements in a preciseBuffer', function(done) {
+    it('should be an exact number of elements using "every" method', function(done) {
       let count = 5;
       let times = 3;
       pipeline(run => {
         let counter = 1;
         later(function loop(){
-          run(counter++)
+          run(counter++);
           if(counter <= count * times) {
             later(loop);
           } else {
@@ -112,7 +112,56 @@ describe('pipeline', function() {
       .pipe(every(count))
       .pipe(res => {
         expect(res.length).toEqual(count);
+      });
+    });
+    it('should buffer with a limit', function(done) {
+      let count = 5;
+      let times = 3;
+      pipeline(run => {
+        let counter = 1;
+        later(function loop(){
+          run(counter++);
+          if(counter <= count * times) {
+            later(loop);
+          } else {
+            done();
+          }
+        });
       })
+      .pipe(buffer(count))
+      .pipe(res => {
+        expect(res.length <= count).toBeTruthy();
+      });
+    });
+    it('should return the latest number of items in the buffer', function(done) {
+      let count = 5;
+      let times = 3;
+      pipeline(run => {
+        let counter = 1;
+        later(function loop(){
+          run(counter++);
+          if(counter <= count * times) {
+            later(loop);
+          } else {
+            done();
+          }
+        });
+      })
+      .pipe(buffer())
+      .pipe(latest(count))
+      .pipe(res => {
+        expect(res.length <= count).toBeTruthy();
+      });
+    });
+    it('should run the log method in window.console', function() {
+      spyOn(console, "log");
+      let test = "test";
+      pipe(_ => test)
+      .pipe(log(test))
+      .pipe(_ => {
+        expect(console.log).toHaveBeenCalledWith(test, test);
+      })
+      .run();
     });
   });
 });
