@@ -72,26 +72,30 @@ describe('pipeline functional tests', function() {
       function add2(res) {
         return res + 2;
       }
-      commonPipe = pipe(init);
-      pipe1 = commonPipe.pipe(add1);
-      pipe2 = commonPipe.pipe(add2);
+      commonPipe = pipe(init)
+      pipe1 = commonPipe.pipe(add1)
+      pipe2 = commonPipe.pipe(add2)
     });
     it('should not allow multiple paths on pipes', function() {
-      // this is not possible, as the callbacks are cached
-      // in a shared object.
+      // This is not the correct way to split pipes, 
+      // as the callbacks are cached in a shared object.
+      // Unless a callback hasn't been added, it will be run.
       pipe1
-      .pipe(_ => expect(_).not.toEqual(1))
+      .pipe(_ => (expect(_).not.toEqual(1), skip))
+      .pipe(_ => (expect(_).toEqual(3), skip))
       .run();
 
       pipe2
-      .pipe(_ => expect(_).not.toEqual(2))
+      .pipe(_ => (expect(_).not.toEqual(2), skip))
+      .pipe(_ => (expect(_).toEqual(3), skip))
       .run();
 
       commonPipe
-      .pipe(_ => expect(_).not.toEqual(3))
+      .pipe(_ => (expect(_).toEqual(3), skip))
       .run();
     });
     it('should allow multiple paths', function() {
+      // This is the correct way to split pipes.
       commonPipe
 
       // returning a pipe allows to continue on different pipes.
