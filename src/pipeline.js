@@ -51,7 +51,7 @@ pipe.skip = uniqueID();
  *      @argument {Function}  run pipe runner
  * @return {pipe}
  */
-pipe.pipeline = function(callback) {
+pipe.pipeline = function(callback=_ => {}) {
   let _pipe = pipe();
   callback(_pipe.run);
   return _pipe;
