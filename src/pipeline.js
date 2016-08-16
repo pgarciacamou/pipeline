@@ -117,7 +117,7 @@ pipe.helpers = {
    * @param  {Function} fn
    * @return {Function}
    */
-  execute: function (fn) {
+  execute: function (fn = _ => {}) {
     return (...args) => {
       fn(...args);
       return pipe.commands.skip;
