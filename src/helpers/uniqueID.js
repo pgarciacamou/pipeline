@@ -1,3 +1,4 @@
 module.exports = function uniqueID() {
-  return Object.freeze({});
+  var obj = { __isUniqueID: true };
+  return Object.freeze ? Object.freeze(obj) : obj;
 };
