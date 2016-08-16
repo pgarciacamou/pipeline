@@ -58,4 +58,49 @@ describe('pipeline functional tests', function() {
       fireEventsAsync(elem, eventName, numOfEvents);
     });
   });
+  describe('multiple paths', function() {
+    var pipe1;
+    var pipe2;
+    var commonPipe;
+    beforeEach(function() {
+      function init(){
+        return 0;
+      }
+      function add1(res) {
+        return res + 1;
+      }
+      function add2(res) {
+        return res + 2;
+      }
+      commonPipe = pipe(init);
+      pipe1 = commonPipe.pipe(add1);
+      pipe2 = commonPipe.pipe(add2);
+    });
+    it('should not allow multiple paths on pipes', function() {
+      // this is not possible, as the callbacks are cached
+      // in a shared object.
+      pipe1
+      .pipe(_ => expect(_).not.toEqual(1))
+      .run();
+
+      pipe2
+      .pipe(_ => expect(_).not.toEqual(2))
+      .run();
+
+      commonPipe
+      .pipe(_ => expect(_).not.toEqual(3))
+      .run();
+    });
+    it('should allow multiple paths', function() {
+      commonPipe
+
+      // returning a pipe allows to continue on different pipes.
+      .pipe(_ => pipe(_ => -1))
+
+      // return skip so it doesn't modify the current stream.
+      .pipe(_ => (expect(_).not.toEqual(3), skip))
+      .pipe(_ => expect(_).toEqual(-1))
+      .run();
+    });
+  });
 });
