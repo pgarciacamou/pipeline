@@ -1,15 +1,16 @@
 const pipe = require("../../src/pipeline.js");
+const pipeline = pipe.pipeline;
 const {
   stop,
-  skip,
-  pipeline,
+  skip
+} = pipe.commands;
+const {
   every,
   buffer,
   latest,
   log,
   execute
-} = pipe;
-
+} = pipe.helpers;
 
 describe('pipeline functional tests', function() {
   let later = fn => {
