@@ -159,10 +159,12 @@ describe('pipeline functional tests', function() {
     it('should run the log method in window.console', function() {
       spyOn(console, "log");
       let test = "test";
+      let msg = "message";
       pipe(_ => test)
-      .pipe(log(test))
+      .pipe(log(msg))
       .pipe(_ => {
-        expect(console.log).toHaveBeenCalledWith(test, test);
+        expect(console.log).toHaveBeenCalledWith(test);
+        expect(console.log).toHaveBeenCalledWith(msg);
       })
       .run();
     });

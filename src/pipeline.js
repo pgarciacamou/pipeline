@@ -104,11 +104,10 @@ pipe.helpers = {
    * @param  {Function} [process] callback to process data if needed
    * @return {Function}
    */
-  log: function(msg, process = _ => _) {
+  log: function(msg=null, process = _ => _) {
     return _ => {
-      let log = [process(_)];
-      msg && log.unshift(msg);
-      console.log.apply(console, log);
+      msg && console.log(msg);
+      console.log(process(_));
       return pipe.commands.skip;
     };
   },
