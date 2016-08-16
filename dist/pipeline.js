@@ -1,5 +1,5 @@
 // Copyright (c) 2016 Pablo Garcia
-// v0.2.0-beta
+// v0.3.0-beta
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -7,7 +7,8 @@
 "use strict";
 
 module.exports = function uniqueID() {
-  return Object.freeze({});
+  var obj = { __isUniqueID: true };
+  return Object.freeze ? Object.freeze(obj) : obj;
 };
 
 },{}],2:[function(require,module,exports){
@@ -39,35 +40,33 @@ var pipe = module.exports = function _pipe2() {
         if (temp && temp.pipe) temp.pipe(function (_) {
           return temp = _;
         }).run();
-        if (temp === _pipe2.skip) continue;
+        if (temp === _pipe2.commands.skip) continue;
         res = temp;
-        if (res === _pipe2.stop) break;
+        if (res === _pipe2.commands.stop) break;
       }
       return res;
     }
   };
 };
 
-// COMMANDS
-// --------------------
+pipe.commands = {
 
-/**
- * stop command
- * when returned through a pipe, the pipeline stops
- * @type {object}
- */
-pipe.stop = uniqueID();
+  /**
+   * stop command
+   * when returned through a pipe, the pipeline stops
+   * @type {object}
+   */
+  stop: uniqueID(),
 
-/**
- * stop command
- * when returned through a pipe, the pipeline skips
- * the result from the current pipe function.
- * @type {object}
- */
-pipe.skip = uniqueID();
+  /**
+   * stop command
+   * when returned through a pipe, the pipeline skips
+   * the result from the current pipe function.
+   * @type {object}
+   */
+  skip: uniqueID()
 
-// EXTRA FUNCTIONALITY
-// --------------------
+};
 
 /**
  * Wraps the execution of a pipe.
@@ -75,77 +74,93 @@ pipe.skip = uniqueID();
  *      @argument {Function}  run pipe runner
  * @return {pipe}
  */
-pipe.pipeline = function (callback) {
+pipe.pipeline = function () {
+  var callback = arguments.length <= 0 || arguments[0] === undefined ? function (_) {} : arguments[0];
+
   var _pipe = pipe();
   callback(_pipe.run);
   return _pipe;
 };
 
-// HELPERS
-// --------------------
+pipe.helpers = {
+  /**
+   * Buffers until numOfItems and restarts the buffer.
+   * @param  {Number} [numOfItems=0] length of the buffer
+   * @return {Function}
+   */
+  every: function every() {
+    var numOfItems = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
 
-/**
- * Buffers until numOfItems and restarts the buffer.
- * @param  {Number} [numOfItems=0] length of the buffer
- * @return {Function}
- */
-pipe.every = function () {
-  var numOfItems = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
+    var buffer = [];
+    return function (_) {
+      buffer.push(_);
+      if (buffer.length < numOfItems) return pipe.commands.stop;
+      return buffer.splice(0);
+    };
+  },
 
-  var buffer = [];
-  return function (_) {
-    buffer.push(_);
-    if (buffer.length < numOfItems) return pipe.stop;
-    return buffer.splice(0);
-  };
-};
+  /**
+   * Keeps a continuous buffer with an upperLimit of items.
+   * Every time the pipe is 'run', the full buffer will be
+   * passed down the pipe.
+   * @param  {Number} [upperBoundLimit=100] maximum number of items in the buffer at any given time
+   * @return {Function}
+   */
+  buffer: function buffer() {
+    var upperBoundLimit = arguments.length <= 0 || arguments[0] === undefined ? 100 : arguments[0];
 
-/**
- * Keeps a continuous buffer with an upperLimit of items.
- * Every time the pipe is 'run', the full buffer will be
- * passed down the pipe.
- * @param  {Number} [upperBoundLimit=100] maximum number of items in the buffer at any given time
- * @return {Function}
- */
-pipe.buffer = function () {
-  var upperBoundLimit = arguments.length <= 0 || arguments[0] === undefined ? 100 : arguments[0];
+    var buffer = [];
+    return function (_) {
+      buffer.push(_);
+      if (buffer.length > upperBoundLimit) buffer.splice(0, buffer.length - upperBoundLimit);
+      return buffer.slice(0);
+    };
+  },
 
-  var buffer = [];
-  return function (_) {
-    buffer.push(_);
-    if (buffer.length > upperBoundLimit) buffer.splice(0, buffer.length - upperBoundLimit);
-    return buffer.slice(0);
-  };
-};
+  /**
+   * Used in conjuction with 'buffer', this static method
+   * will return the latest numOfItems in the buffer.
+   * @param  {Number} numOfItems number of items to select from the buffer
+   * @return {Function}
+   */
+  latest: function latest(numOfItems) {
+    return function (_) {
+      return _.slice(-numOfItems);
+    };
+  },
 
-/**
- * Used in conjuction with 'buffer', this static method
- * will return the latest numOfItems in the buffer.
- * @param  {Number} numOfItems number of items to select from the buffer
- * @return {Function}
- */
-pipe.latest = function (numOfItems) {
-  return function (_) {
-    return _.slice(-numOfItems);
-  };
-};
+  /**
+   * This logger is just a helper to print to the console with ease.
+   * @param  {String}   [msg]     message to log before values
+   * @param  {Function} [process] callback to process data if needed
+   * @return {Function}
+   */
+  log: function log() {
+    var msg = arguments.length <= 0 || arguments[0] === undefined ? null : arguments[0];
+    var process = arguments.length <= 1 || arguments[1] === undefined ? function (_) {
+      return _;
+    } : arguments[1];
 
-/**
- * This logger is just a helper to print to the console with ease.
- * @param  {String}   [msg]     message to log before values
- * @param  {Function} [process] callback to process data if needed
- * @return {Function}
- */
-pipe.log = function (msg) {
-  var process = arguments.length <= 1 || arguments[1] === undefined ? function (_) {
-    return _;
-  } : arguments[1];
+    return function (_) {
+      msg && console.log(msg);
+      console.log(process(_));
+      return pipe.commands.skip;
+    };
+  },
 
-  return function (_) {
-    var log = [process(_)];
-    msg && log.unshift(msg);
-    return console.log.apply(console, log);
-  };
+  /**
+   * Allows execution of a function without taking into account it's result.
+   * @param  {Function} fn
+   * @return {Function}
+   */
+  execute: function execute() {
+    var fn = arguments.length <= 0 || arguments[0] === undefined ? function (_) {} : arguments[0];
+
+    return function () {
+      fn.apply(undefined, arguments);
+      return pipe.commands.skip;
+    };
+  }
 };
 
 },{"./helpers/uniqueID.js":1}]},{},[2]);
