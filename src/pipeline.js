@@ -49,7 +49,7 @@ pipe.commands = {
  *      @argument {Function}  run pipe runner
  * @return {pipe}
  */
-pipe.pipeline = function(callback=_ => {}) {
+pipe.pipeline = function(callback = _ => {}) {
   let _pipe = pipe();
   callback(_pipe.run);
   return _pipe;
