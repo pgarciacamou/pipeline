@@ -65,7 +65,7 @@ pipe.helpers = {
     let buffer = [];
     return _ => {
       buffer.push(_);
-      if(buffer.length < numOfItems) return pipe.stop;
+      if(buffer.length < numOfItems) return pipe.commands.stop;
       return buffer.splice(0);
     };
   },
@@ -108,7 +108,8 @@ pipe.helpers = {
     return _ => {
       let log = [process(_)];
       msg && log.unshift(msg);
-      return console.log.apply(console, log);
+      console.log.apply(console, log);
+      return pipe.commands.skip;
     };
   },
 
@@ -120,7 +121,7 @@ pipe.helpers = {
   execute: function (fn) {
     return (...args) => {
       fn(...args);
-      return pipe.skip;
+      return pipe.commands.skip;
     };
   }
 };
