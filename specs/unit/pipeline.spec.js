@@ -13,7 +13,7 @@ let later = fn => {
   window.setTimeout(fn, 1);
 };
 
-describe('pipeline', function() {
+describe('pipeline unit tests', function() {
   var _pipeline;
   var pipeSpy;
   beforeEach(function() {
