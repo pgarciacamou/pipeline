@@ -115,3 +115,15 @@ pipe.log = function(msg, process = _ => _) {
     return console.log.apply(console, log);
   };
 };
+
+/**
+ * Allows execution of a function without taking into account it's result.
+ * @param  {Function} fn
+ * @return {Function}
+ */
+pipe.execute = function (fn) {
+  return (...args) => {
+    fn(...args);
+    return pipe.skip;
+  };
+};

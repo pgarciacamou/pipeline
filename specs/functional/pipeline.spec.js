@@ -6,26 +6,28 @@ const {
   every,
   buffer,
   latest,
-  log
+  log,
+  execute
 } = pipe;
 
-function dispatchEvent(element, eventName, eventData) {
-  var ev = document.createEvent("Event");
-  ev.data = eventData;
-  ev.initEvent(eventName, true, true);
-  element.dispatchEvent(ev);
-}
-
-function fireEventsAsync(element, eventName, times) {
-  for(let i = 0; i < times; i++) {
-    setTimeout(_ => {
-      dispatchEvent(element, eventName);
-    }, Math.floor(Math.random() * 20));
-  }
-}
 
 describe('pipeline functional tests', function() {
   describe('events', function() {
+    function dispatchEvent(element, eventName, eventData) {
+      var ev = document.createEvent("Event");
+      ev.data = eventData;
+      ev.initEvent(eventName, true, true);
+      element.dispatchEvent(ev);
+    }
+
+    function fireEventsAsync(element, eventName, times) {
+      for(let i = 0; i < times; i++) {
+        setTimeout(_ => {
+          dispatchEvent(element, eventName);
+        }, Math.floor(Math.random() * 20));
+      }
+    }
+
     var elem;
     var _pipeline;
     var numOfEvents;
@@ -42,7 +44,7 @@ describe('pipeline functional tests', function() {
     });
     it('should buffer without problems', function(done) {
       _pipeline
-      .pipe(evts => expect(evts.length).toEqual(numOfEvents))
+      .pipe(execute(evts => expect(evts.length).toEqual(numOfEvents)))
       .pipe(done);
       fireEventsAsync(elem, eventName, numOfEvents);
     });
@@ -58,6 +60,7 @@ describe('pipeline functional tests', function() {
       fireEventsAsync(elem, eventName, numOfEvents);
     });
   });
+
   describe('multiple paths', function() {
     var pipe1;
     var pipe2;
@@ -81,17 +84,17 @@ describe('pipeline functional tests', function() {
       // as the callbacks are cached in a shared object.
       // Unless a callback hasn't been added, it will be run.
       pipe1
-      .pipe(_ => (expect(_).not.toEqual(1), skip))
-      .pipe(_ => (expect(_).toEqual(3), skip))
+      .pipe(execute(_ => expect(_).not.toEqual(1)))
+      .pipe()
       .run();
 
       pipe2
-      .pipe(_ => (expect(_).not.toEqual(2), skip))
-      .pipe(_ => (expect(_).toEqual(3), skip))
+      .pipe(execute(_ => expect(_).not.toEqual(2)))
+      .pipe(execute(_ => expect(_).toEqual(3)))
       .run();
 
       commonPipe
-      .pipe(_ => (expect(_).toEqual(3), skip))
+      .pipe(execute(_ => expect(_).toEqual(3)))
       .run();
     });
     it('should allow multiple paths', function() {
@@ -102,7 +105,7 @@ describe('pipeline functional tests', function() {
       .pipe(_ => pipe(_ => -1))
 
       // return skip so it doesn't modify the current stream.
-      .pipe(_ => (expect(_).not.toEqual(3), skip))
+      .pipe(execute(_ => expect(_).not.toEqual(3)))
       .pipe(_ => expect(_).toEqual(-1))
       .run();
     });
