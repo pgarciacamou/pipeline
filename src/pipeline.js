@@ -15,35 +15,33 @@ let pipe = module.exports = function pipe(callback=null, _pipes={cbs:[]}){
       while(cb = _pipes.cbs[i++]){
         let temp = cb(res);
         if(temp && temp.pipe) temp.pipe(_ => temp = _).run();
-        if(temp === pipe.skip) continue;
+        if(temp === pipe.commands.skip) continue;
         res = temp;
-        if(res === pipe.stop) break;
+        if(res === pipe.commands.stop) break;
       }
       return res;
     }
   };
 };
 
-// COMMANDS
-// --------------------
+pipe.commands = {
 
-/**
- * stop command
- * when returned through a pipe, the pipeline stops
- * @type {object}
- */
-pipe.stop = uniqueID();
+  /**
+   * stop command
+   * when returned through a pipe, the pipeline stops
+   * @type {object}
+   */
+  stop: uniqueID(),
 
-/**
- * stop command
- * when returned through a pipe, the pipeline skips
- * the result from the current pipe function.
- * @type {object}
- */
-pipe.skip = uniqueID();
+  /**
+   * stop command
+   * when returned through a pipe, the pipeline skips
+   * the result from the current pipe function.
+   * @type {object}
+   */
+  skip: uniqueID()
 
-// EXTRA FUNCTIONALITY
-// --------------------
+};
 
 /**
  * Wraps the execution of a pipe.
@@ -57,73 +55,72 @@ pipe.pipeline = function(callback=_ => {}) {
   return _pipe;
 };
 
-// HELPERS
-// --------------------
+pipe.helpers = {
+  /**
+   * Buffers until numOfItems and restarts the buffer.
+   * @param  {Number} [numOfItems=0] length of the buffer
+   * @return {Function}
+   */
+  every: function(numOfItems=0) {
+    let buffer = [];
+    return _ => {
+      buffer.push(_);
+      if(buffer.length < numOfItems) return pipe.stop;
+      return buffer.splice(0);
+    };
+  },
 
-/**
- * Buffers until numOfItems and restarts the buffer.
- * @param  {Number} [numOfItems=0] length of the buffer
- * @return {Function}
- */
-pipe.every = function(numOfItems=0) {
-  let buffer = [];
-  return _ => {
-    buffer.push(_);
-    if(buffer.length < numOfItems) return pipe.stop;
-    return buffer.splice(0);
-  };
-};
+  /**
+   * Keeps a continuous buffer with an upperLimit of items.
+   * Every time the pipe is 'run', the full buffer will be
+   * passed down the pipe.
+   * @param  {Number} [upperBoundLimit=100] maximum number of items in the buffer at any given time
+   * @return {Function}
+   */
+  buffer: function(upperBoundLimit=100) {
+    let buffer = [];
+    return _ => {
+      buffer.push(_);
+      if(buffer.length > upperBoundLimit) buffer.splice(0,buffer.length - upperBoundLimit);
+      return buffer.slice(0);
+    };
+  },
 
-/**
- * Keeps a continuous buffer with an upperLimit of items.
- * Every time the pipe is 'run', the full buffer will be
- * passed down the pipe.
- * @param  {Number} [upperBoundLimit=100] maximum number of items in the buffer at any given time
- * @return {Function}
- */
-pipe.buffer = function(upperBoundLimit=100) {
-  let buffer = [];
-  return _ => {
-    buffer.push(_);
-    if(buffer.length > upperBoundLimit) buffer.splice(0,buffer.length - upperBoundLimit);
-    return buffer.slice(0);
-  };
-};
+  /**
+   * Used in conjuction with 'buffer', this static method
+   * will return the latest numOfItems in the buffer.
+   * @param  {Number} numOfItems number of items to select from the buffer
+   * @return {Function}
+   */
+  latest: function(numOfItems) {
+    return _ => {
+      return _.slice(-numOfItems);
+    };
+  },
 
-/**
- * Used in conjuction with 'buffer', this static method
- * will return the latest numOfItems in the buffer.
- * @param  {Number} numOfItems number of items to select from the buffer
- * @return {Function}
- */
-pipe.latest = function(numOfItems) {
-  return _ => {
-    return _.slice(-numOfItems);
-  };
-};
+  /**
+   * This logger is just a helper to print to the console with ease.
+   * @param  {String}   [msg]     message to log before values
+   * @param  {Function} [process] callback to process data if needed
+   * @return {Function}
+   */
+  log: function(msg, process = _ => _) {
+    return _ => {
+      let log = [process(_)];
+      msg && log.unshift(msg);
+      return console.log.apply(console, log);
+    };
+  },
 
-/**
- * This logger is just a helper to print to the console with ease.
- * @param  {String}   [msg]     message to log before values
- * @param  {Function} [process] callback to process data if needed
- * @return {Function}
- */
-pipe.log = function(msg, process = _ => _) {
-  return _ => {
-    let log = [process(_)];
-    msg && log.unshift(msg);
-    return console.log.apply(console, log);
-  };
-};
-
-/**
- * Allows execution of a function without taking into account it's result.
- * @param  {Function} fn
- * @return {Function}
- */
-pipe.execute = function (fn) {
-  return (...args) => {
-    fn(...args);
-    return pipe.skip;
-  };
+  /**
+   * Allows execution of a function without taking into account it's result.
+   * @param  {Function} fn
+   * @return {Function}
+   */
+  execute: function (fn) {
+    return (...args) => {
+      fn(...args);
+      return pipe.skip;
+    };
+  }
 };
