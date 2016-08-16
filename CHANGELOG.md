@@ -1,3 +1,10 @@
+## v0.3.0-beta
+
+* Fixed bugs with helpers.
+* Wrapped helpers (breaking change).
+* Wrapped commands (breaking change).
+* Added more tests.
+
 ## v0.2.0-beta
 
 * Changed ***continuousBuffer*** static method to ***buffer***.
