@@ -1,3 +1,8 @@
+## v0.5.0-beta
+
+* manually added `module.exports` to build and distribution files.
+* build process is broken as it doesn't automatically create a library easy to import with browserify.
+
 ## v0.4.0-beta
 
 * minified pipeline to allow require with a different browserify module.
