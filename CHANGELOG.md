@@ -1,3 +1,8 @@
+## v0.4.0-beta
+
+* minified pipeline to allow require with a different browserify module.
+* changed library enter file (from index.js to dist/pipeline.min.js).
+
 ## v0.3.0-beta
 
 * Fixed bugs with helpers.
