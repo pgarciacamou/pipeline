@@ -4,8 +4,10 @@
   "description": "small api that allows to execute functions/callbacks sequentially",
   "main": "index.js",
   "scripts": {
-    "dist": "./node_modules/browserify/bin/cmd.js ./src/pipeline.js -o ./dist/pipeline.js -t [ babelify --presets [ es2015 ] ]",
-    "test": "./node_modules/karma/bin/karma start"
+    "build": "./node_modules/browserify/bin/cmd.js ./src/pipeline.js -o ./dist/pipeline.js -t [ babelify --presets [ es2015 ] ]",
+    "dist": "npm run build && npm run uglify",
+    "test": "./node_modules/karma/bin/karma start",
+    "uglify": "node_modules/.bin/uglifyjs --compress --screw-ie-8 --comments --mangle --mangle-props --mangle-regex='/^_/' ./dist/pipeline.js > ./dist/pipeline.min.js"
   },
   "repository": {
     "type": "git",
@@ -34,6 +36,7 @@
     "karma-jasmine": "^1.0.2",
     "karma-phantomjs-launcher": "^1.0.0",
     "phantomjs-prebuilt": "^2.1.7",
+    "uglify-js": "^2.7.3",
     "watchify": "^3.7.0"
   }
 }
