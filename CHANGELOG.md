@@ -1,3 +1,9 @@
+## v0.6.0-beta
+
+* Built standalone version with browserify.
+* Built new module version to require with npm.
+* Cleaned up distribution scripts.
+
 ## v0.5.0-beta
 
 * manually added `module.exports` to build and distribution files.
