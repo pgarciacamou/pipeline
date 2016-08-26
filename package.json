@@ -4,7 +4,7 @@
   "description": "small api that allows to execute functions/callbacks sequentially",
   "main": "dist/pipeline.module.js",
   "scripts": {
-    "dist": "./build.sh",
+    "dist": "node ./build.js",
     "test": "./node_modules/karma/bin/karma start"
   },
   "repository": {
